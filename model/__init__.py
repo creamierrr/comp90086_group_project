@@ -1,0 +1,2 @@
+from model.CNN_Key_Query_Categorisation import CNN_Key_Query_Categorisation
+from model.CNN_Key_Query_Triplet import CNN_Key_Query_Triplet

@@ -36,12 +36,12 @@ class CNN_Key_Query_Triplet(CNN_Triplet_Model):
                     self.mlp_query = nn.ModuleList([LinearLayer(self.CFG) for _ in range(self.CFG.num_mlp_layers)])
                     self.mlp_key = nn.ModuleList([LinearLayer(self.CFG) for _ in range(self.CFG.num_mlp_layers)])
 
-                self.out_query = nn.Linear(self.CFG.hidden_dim, 2)
-                self.out_key = nn.Linear(self.CFG.hidden_dim, 2)
+                self.out_query = nn.Linear(self.CFG.hidden_dim, self.CFG.embed_dim)
+                self.out_key = nn.Linear(self.CFG.hidden_dim, self.CFG.embed_dim)
 
             else:
-                self.out_query = nn.Linear(flatten_shape, 2)
-                self.out_key = nn.Linear(flatten_shape, 2)
+                self.out_query = nn.Linear(flatten_shape, self.CFG.embed_dim)
+                self.out_key = nn.Linear(flatten_shape, self.CFG.embed_dim)
 
             self.relu = nn.ReLU()
             self.dropout = nn.Dropout(self.CFG.dropout)

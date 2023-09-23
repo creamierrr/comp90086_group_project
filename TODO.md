@@ -4,3 +4,6 @@
 
 - evaluation framework
 - evaluation framework add into eval() and train()
+
+- TODO: batch normalise
+

@@ -58,7 +58,7 @@ class CNN_Categorisation_Model(object):
 
             for mini_batch_number in tqdm(range(n_batch)):
                 
-                x_left, x_right, y = self.CFG.DataLoader_Categorisation(x_list, y_list, mini_batch_number, batch_size, self.CFG.ROOT)
+                x_left, x_right, y = self.CFG.DataLoader_Categorisation(x_list, y_list, mini_batch_number, batch_size, self.CFG)
 
                 x_left, x_right, y = x_left.to(self.device), x_right.to(self.device), y.to(self.device)
 
@@ -113,7 +113,7 @@ class CNN_Categorisation_Model(object):
 
             for mini_batch_number in range(n_batch):
                 
-                x_left, x_right, y = self.CFG.DataLoader_Categorisation(x_list, y_list, mini_batch_number, batch_size, self.CFG.ROOT)
+                x_left, x_right, y = self.CFG.DataLoader_Categorisation(x_list, y_list, mini_batch_number, batch_size, self.CFG)
 
                 x_left, x_right, y = x_left.to(self.device), x_right.to(self.device), y.to(self.device)
                 pred, true = self.model(x_left, x_right), y
@@ -184,7 +184,7 @@ class CNN_Triplet_Model(object):
             if not patience:
                 break
             
-            x_list = self.CFG.DataFactory_Triplet(train_list, self.CFG.num_false, self.CFG.random_state, target = self.CFG.target)
+            x_list = self.CFG.DataFactory_Triplet(train_list, self.CFG.num_false, self.CFG.random_state)
 
             epoch_loss = 0
             n_batch = len(x_list)//batch_size + 1
@@ -194,7 +194,7 @@ class CNN_Triplet_Model(object):
 
             for mini_batch_number in tqdm(range(n_batch)):
                 
-                x_anchor, x_positive, x_negative = self.CFG.DataLoader_Triplet(x_list, mini_batch_number, batch_size, self.CFG.ROOT)
+                x_anchor, x_positive, x_negative = self.CFG.DataLoader_Triplet(x_list, mini_batch_number, batch_size, self.CFG)
 
                 x_anchor, x_positive, x_negative = x_anchor.to(self.device), x_positive.to(self.device), x_negative.to(self.device)
 
@@ -233,14 +233,14 @@ class CNN_Triplet_Model(object):
         with torch.no_grad():
         
 
-            x_list = self.CFG.DataFactory_Triplet(val_list, self.CFG.num_false, self.CFG.random_state, target = self.CFG.target)
+            x_list = self.CFG.DataFactory_Triplet(val_list, self.CFG.num_false, self.CFG.random_state)
 
             valid_loss = 0
             n_batch = len(x_list)//batch_size + 1
 
             for mini_batch_number in range(n_batch):
                 
-                x_anchor, x_positive, x_negative = self.CFG.DataLoader_Triplet(x_list, mini_batch_number, batch_size, self.CFG.ROOT)
+                x_anchor, x_positive, x_negative = self.CFG.DataLoader_Triplet(x_list, mini_batch_number, batch_size, self.CFG)
 
                 x_anchor, x_positive, x_negative = x_anchor.to(self.device), x_positive.to(self.device), x_negative.to(self.device)
                 anchor, positive, negative = self.model(x_anchor, x_positive, x_negative)

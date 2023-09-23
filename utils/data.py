@@ -3,7 +3,7 @@ from environment import *
 # prepare image for the model
 def prepare_image(filepath):
     img = cv2.imread(filepath)
-    img = cv2.resize(img, (64,64))
+    # img = cv2.resize(img, (64,64))
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     
     img = img.astype("float32")
@@ -70,7 +70,7 @@ def DataFactory_Triplet(train_list, num_false, seed, ranking = None):
 
     return x_list
 
-def DataLoader_Categorisation(x_list, y_list, batch_number, batch_size, ROOT):
+def DataLoader_Categorisation(x_list, y_list, batch_number, batch_size, CFG):
     
     x_left, x_right, y = [], [], []
 
@@ -78,8 +78,8 @@ def DataLoader_Categorisation(x_list, y_list, batch_number, batch_size, ROOT):
     y_list = y_list[batch_number*batch_size:(batch_number+1)*batch_size]
 
     for i in range(len(x_list)):
-        x_left.append(prepare_image(ROOT + f'/train/left/{x_list[i][0]}.jpg'))
-        x_right.append(prepare_image(ROOT + f'/train/right/{x_list[i][1]}.jpg'))
+        x_left.append(CFG.images[f'{x_list[i][0]}.jpg'])
+        x_right.append(CFG.images[f'{x_list[i][0]}.jpg'])
         y.append(y_list[i])
 
     x_left = np.array(x_left)
@@ -89,16 +89,16 @@ def DataLoader_Categorisation(x_list, y_list, batch_number, batch_size, ROOT):
     return torch.FloatTensor(x_left), torch.FloatTensor(x_right), torch.FloatTensor(y)
 
 
-def DataLoader_Triplet(x_list, batch_number, batch_size, ROOT):
+def DataLoader_Triplet(x_list, batch_number, batch_size, CFG):
     
     x_anchor, x_positive, x_negative = [], [], []
 
     x_list = x_list[batch_number*batch_size:(batch_number+1)*batch_size]
 
     for i in range(len(x_list)):
-        x_anchor.append(prepare_image(ROOT + f'/train/left/{x_list[i][0]}.jpg'))
-        x_positive.append(prepare_image(ROOT + f'/train/right/{x_list[i][1]}.jpg'))
-        x_negative.append(prepare_image(ROOT + f'/train/right/{x_list[i][2]}.jpg'))
+        x_anchor.append(CFG.images[f'{x_list[i][0]}.jpg'])
+        x_positive.append(CFG.images[f'{x_list[i][1]}.jpg'])
+        x_negative.append(CFG.images[f'{x_list[i][2]}.jpg'])
 
     x_anchor = np.array(x_anchor)
     x_positive = np.array(x_positive)

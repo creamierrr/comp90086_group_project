@@ -21,6 +21,7 @@ import torch
 import torch.nn as nn
 from torch.optim import AdamW, lr_scheduler
 from torch.utils.data import Dataset, DataLoader
+import torch.hub
 
 import sklearn
 from sklearn.metrics import accuracy_score

@@ -8,10 +8,12 @@ class CNN_Key_Query_Categorisation(CNN_Categorisation_Model):
             super().__init__()
             self.CFG = CFG
 
+            assert not (self.CFG.freeze_encoder and not self.CFG.pretrained), "If encoder is frozen, it must be pretrained"
+
             torch.manual_seed(self.CFG.random_state)
 
-            self.encoder_left = torch.hub.load('pytorch/vision:v0.10.0', self.CFG.encoder, pretrained=True)
-            self.encoder_right = torch.hub.load('pytorch/vision:v0.10.0', self.CFG.encoder, pretrained=True)
+            self.encoder_left = torch.hub.load('pytorch/vision:v0.10.0', self.CFG.encoder, pretrained=self.CFG.pretrained)
+            self.encoder_right = torch.hub.load('pytorch/vision:v0.10.0', self.CFG.encoder, pretrained=self.CFG.pretrained)
 
             sample_input = torch.randn(self.CFG.input_shape)  
             sample_output = self.encoder_left(sample_input)

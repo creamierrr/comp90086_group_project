@@ -41,7 +41,7 @@ def DataFactory_Categorisation(train_list, num_false, seed, target = 1):
 
     return x_list, y_list
 
-def DataFactory_Triplet(train_list, num_false, seed, ranking = None, target = 1):
+def DataFactory_Triplet(train_list, num_false, seed, ranking = None):
     """ 
         Input:
             Num_False: number of false samples for each true sample

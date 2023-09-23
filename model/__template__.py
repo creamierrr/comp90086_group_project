@@ -9,7 +9,7 @@ class CNN_Categorisation_Model(object):
         super().__init__()
         self.CFG   = CFG
         self.name  = name
-        self.model = self.Model(self.CFG)
+        self.model = self.Model(self.CFG) # initialise model
 
         torch.manual_seed(self.CFG.random_state)
         
@@ -63,18 +63,18 @@ class CNN_Categorisation_Model(object):
                 x_left, x_right, y = x_left.to(self.device), x_right.to(self.device), y.to(self.device)
 
                 self.optimizer.zero_grad()
-                pred, true = self.model(x_left, x_right), y
+                pred, true = self.model(x_left, x_right), y # run through model to get prediction which also contains gradients
 
                 predicted_labels = torch.argmax(pred, dim=1)
                 true_labels = torch.argmax(true, dim=1)
 
-                loss = self.criterion(pred, true)
+                loss = self.criterion(pred, true) # find out the loss
 
-                loss.backward()
+                loss.backward() # calculate gradient 
 
                 if grad_clip:
                     nn.utils.clip_grad_norm_(self.model.parameters(), 2.0)
-                self.optimizer.step()
+                self.optimizer.step() # backpropagate
                 epoch_loss += loss.detach().cpu().numpy()
 
                 epoch_pred += predicted_labels.detach().cpu().tolist()
@@ -138,7 +138,6 @@ class CNN_Categorisation_Model(object):
         else:
             return valid_pred, valid_true
 
-from environment import *
 
 class CNN_Triplet_Model(object):
     class Model():

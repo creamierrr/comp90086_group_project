@@ -33,11 +33,11 @@ class CNN_Key_Query_Categorisation(CNN_Categorisation_Model):
                 self.transition_right = nn.Linear(flatten_shape, self.CFG.hidden_dim)
 
                 if self.CFG.res_learning:
-                    self.mlp_left = nn.ModuleList([ResLayer(self.CFG) for _ in range(self.CFG.num_mlp_layers)])
-                    self.mlp_right = nn.ModuleList([ResLayer(self.CFG) for _ in range(self.CFG.num_mlp_layers)])
+                    self.mlp_left = nn.ModuleList([ResLayer(self.CFG) for _ in range(self.CFG.num_mlp_layers-1)]) # -1 layer because of transition layer
+                    self.mlp_right = nn.ModuleList([ResLayer(self.CFG) for _ in range(self.CFG.num_mlp_layers-1)])
                 else:
-                    self.mlp_left = nn.ModuleList([LinearLayer(self.CFG) for _ in range(self.CFG.num_mlp_layers)])
-                    self.mlp_right = nn.ModuleList([LinearLayer(self.CFG) for _ in range(self.CFG.num_mlp_layers)])
+                    self.mlp_left = nn.ModuleList([LinearLayer(self.CFG) for _ in range(self.CFG.num_mlp_layers-1)])
+                    self.mlp_right = nn.ModuleList([LinearLayer(self.CFG) for _ in range(self.CFG.num_mlp_layers-1)])
 
                 self.out = nn.Linear(self.CFG.hidden_dim*2, 2)
 

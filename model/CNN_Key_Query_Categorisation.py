@@ -79,4 +79,4 @@ class CNN_Key_Query_Categorisation(CNN_Categorisation_Model):
             return self.softmax(self.out(x_combined_embed))
         
     def __init__(self, CFG, name="CNN_Categorisation"):
-        super().__init__(CFG, name=name)
+        super().__init__(CFG, name=CFG.name)

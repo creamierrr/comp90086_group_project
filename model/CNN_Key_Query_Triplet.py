@@ -49,34 +49,70 @@ class CNN_Key_Query_Triplet(CNN_Triplet_Model):
             self.dropout = nn.Dropout(self.CFG.dropout)
         
             
-        def forward(self, x_anchor, x_positive, x_negative):
+        def forward(self, x_anchor = None, x_positive = None, x_negative = None):
             
-            x_anchor = x_anchor.permute(0, 3, 1, 2) # change axis order
-            x_positive = x_positive.permute(0, 3, 1, 2)
-            x_negative = x_negative.permute(0, 3, 1, 2)
+            if x_anchor is not None and x_positive is not None and x_negative is not None:
+                x_anchor = x_anchor.permute(0, 3, 1, 2) # change axis order
+                x_positive = x_positive.permute(0, 3, 1, 2)
+                x_negative = x_negative.permute(0, 3, 1, 2)
 
-            x_anchor = self.encoder_query(x_anchor)
-            x_positive = self.encoder_key(x_positive)
-            x_negative = self.encoder_key(x_negative)
+                x_anchor = self.encoder_query(x_anchor)
+                x_positive = self.encoder_key(x_positive)
+                x_negative = self.encoder_key(x_negative)
 
-            batch_size = x_anchor.size(0)
-            
-            x_anchor = x_anchor.reshape(batch_size, -1) # flatten out the encoded image
-            x_positive = x_positive.reshape(batch_size, -1)
-            x_negative = x_negative.reshape(batch_size, -1)
+                batch_size = x_anchor.size(0)
+                
+                x_anchor = x_anchor.reshape(batch_size, -1) # flatten out the encoded image
+                x_positive = x_positive.reshape(batch_size, -1)
+                x_negative = x_negative.reshape(batch_size, -1)
 
-            if self.CFG.num_mlp_layers:
-                x_anchor = self.dropout(self.relu(self.transition_query(x_anchor))) # first go through resizing layer to change flatten_size to hidden dim
-                x_positive = self.dropout(self.relu(self.transition_key(x_positive)))
-                x_negative = self.dropout(self.relu(self.transition_key(x_negative)))
+                if self.CFG.num_mlp_layers:
+                    x_anchor = self.dropout(self.relu(self.transition_query(x_anchor))) # first go through resizing layer to change flatten_size to hidden dim
+                    x_positive = self.dropout(self.relu(self.transition_key(x_positive)))
+                    x_negative = self.dropout(self.relu(self.transition_key(x_negative)))
 
-                for layer in self.mlp_query: # go through mlp layers
-                    x_anchor = layer(x_anchor)
-                for layer in self.mlp_key:
-                    x_positive = layer(x_positive)
-                    x_negative = layer(x_negative)
-    
-            return self.relu(self.out_query(x_anchor)), self.relu(self.out_key(x_positive)), self.relu(self.out_key(x_negative)) # export embedding
+                    for layer in self.mlp_query: # go through mlp layers
+                        x_anchor = layer(x_anchor)
+                    for layer in self.mlp_key:
+                        x_positive = layer(x_positive)
+                        x_negative = layer(x_negative)
+        
+                return self.relu(self.out_query(x_anchor)), self.relu(self.out_key(x_positive)), self.relu(self.out_key(x_negative)) # export embedding
+        
+            elif x_anchor is not None and x_positive is None and x_negative is None:
+                x_anchor = x_anchor.permute(0, 3, 1, 2) # change axis order
+
+                x_anchor = self.encoder_query(x_anchor)
+
+                batch_size = x_anchor.size(0)
+                
+                x_anchor = x_anchor.reshape(batch_size, -1) # flatten out the encoded image
+
+                if self.CFG.num_mlp_layers:
+                    x_anchor = self.dropout(self.relu(self.transition_query(x_anchor))) # first go through resizing layer to change flatten_size to hidden dim
+
+                    for layer in self.mlp_query: # go through mlp layers
+                        x_anchor = layer(x_anchor)
+
+        
+                return self.relu(self.out_query(x_anchor)) # export embedding
+        
+            elif x_positive is not None and x_anchor is None and x_negative is None:
+                x_positive = x_positive.permute(0, 3, 1, 2)
+
+                x_positive = self.encoder_key(x_positive)
+
+                batch_size = x_positive.size(0)
+                
+                x_positive = x_positive.reshape(batch_size, -1)
+
+                if self.CFG.num_mlp_layers:
+                    x_positive = self.dropout(self.relu(self.transition_key(x_positive)))
+
+                    for layer in self.mlp_key:
+                        x_positive = layer(x_positive)
+        
+                return self.relu(self.out_key(x_positive))
         
     def __init__(self, CFG, name="CNN_Triplet"):
-        super().__init__(CFG, name=name)
+        super().__init__(CFG, name=CFG.name)

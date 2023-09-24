@@ -199,7 +199,7 @@ class CNN_Triplet_Model(object):
                 x_anchor, x_positive, x_negative = x_anchor.to(self.device), x_positive.to(self.device), x_negative.to(self.device)
 
                 self.optimizer.zero_grad()
-                anchor, positive, negative = self.model(x_anchor, x_positive, x_negative)
+                anchor, positive, negative = self.model(x_anchor = x_anchor, x_positive = x_positive, x_negative = x_negative)
 
                 loss = self.criterion(anchor, positive, negative)
 
@@ -243,7 +243,7 @@ class CNN_Triplet_Model(object):
                 x_anchor, x_positive, x_negative = self.CFG.DataLoader_Triplet(x_list, mini_batch_number, batch_size, self.CFG)
 
                 x_anchor, x_positive, x_negative = x_anchor.to(self.device), x_positive.to(self.device), x_negative.to(self.device)
-                anchor, positive, negative = self.model(x_anchor, x_positive, x_negative)
+                anchor, positive, negative = self.model(x_anchor = x_anchor, x_positive = x_positive, x_negative = x_negative)
 
                 loss = self.criterion(anchor, positive, negative)
 

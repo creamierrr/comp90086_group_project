@@ -3,7 +3,7 @@ from environment import *
 # prepare image for the model
 def prepare_image(filepath):
     img = cv2.imread(filepath)
-    # img = cv2.resize(img, (64,64))
+    img = cv2.resize(img, (64,64))
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     
     img = img.astype("float32")
@@ -79,7 +79,7 @@ def DataLoader_Categorisation(x_list, y_list, batch_number, batch_size, CFG):
 
     for i in range(len(x_list)):
         x_left.append(CFG.images[f'{x_list[i][0]}.jpg'])
-        x_right.append(CFG.images[f'{x_list[i][0]}.jpg'])
+        x_right.append(CFG.images[f'{x_list[i][1]}.jpg'])
         y.append(y_list[i])
 
     x_left = np.array(x_left)

@@ -1,4 +1,5 @@
 from environment import *
+from utils import *
 
 class CNN_Categorisation_Model(object):
     class Model():
@@ -129,6 +130,10 @@ class CNN_Categorisation_Model(object):
                 valid_true += true_labels.detach().cpu().tolist() 
 
 
+            val_future_list = turn_val_into_future(val_list, self.CFG.random_state)
+            
+            self.real_eval(val_future_list, 20)
+
             valid_loss /= n_batch
             valid_accuracy = accuracy_score(valid_pred, valid_true)
             print(f"Validation Loss: {valid_loss:.3f}, Accuracy: {valid_accuracy:.3f}")
@@ -137,6 +142,55 @@ class CNN_Categorisation_Model(object):
             return valid_loss
         else:
             return valid_pred, valid_true
+    
+
+    def real_eval(self, future_list, row_batch_size):
+
+        correct = 0
+        total = 0
+
+        with torch.no_grad():
+            
+            left_images = []
+            right_images = []
+            results = []
+            for id, row in future_list.iterrows():
+                sample = row.values
+                left_images.extend([self.CFG.images[f'{sample[0]}.jpg'] for _ in range(20)])
+                right_images.extend([self.CFG.images[f'{image}.jpg'] for image in sample[1:]])
+                
+                if (id+1) % row_batch_size == 0:
+                    
+                    left_images = torch.tensor(np.array(left_images)).to(self.device)
+                    right_images = torch.tensor(np.array(right_images)).to(self.device)
+
+                    scores = self.model(left_images, right_images)[:, 1]
+                    scores = scores.cpu().numpy()
+                    scores = scores.reshape(int(len(scores)/row_batch_size), row_batch_size)
+                    results.extend(scores)
+                    second_largest_values = np.partition(scores, -2, axis=1)[:, -2]
+                    correct += sum(scores[:, 0] >= second_largest_values)
+                    total += len(second_largest_values)
+
+                    left_images = []
+                    right_images = []
+
+            if (id+1) % row_batch_size != 0: # last ones
+
+                left_images = torch.tensor(np.array(left_images)).to(self.device)
+                right_images = torch.tensor(np.array(right_images)).to(self.device)
+
+                scores = self.model(left_images, right_images)[:, 1]
+                scores = scores.cpu().numpy()
+                scores = scores.reshape(int(len(scores)/row_batch_size), row_batch_size)
+                results.extend(scores)
+                second_largest_values = np.partition(scores, -2, axis=1)[:, -2]
+                correct += sum(scores[:, 0] >= second_largest_values)
+                total += len(second_largest_values)
+
+        print('Nominal Correct:', correct/total)
+        
+        return pd.DataFrame(results, columns = range(20))
 
 
 class CNN_Triplet_Model(object):
@@ -229,9 +283,7 @@ class CNN_Triplet_Model(object):
     def eval(self, val_list, batch_size=128, return_loss=False):
         self.model.eval()
 
-
         with torch.no_grad():
-        
 
             x_list = self.CFG.DataFactory_Triplet(val_list, self.CFG.num_false, self.CFG.random_state)
 
@@ -248,10 +300,83 @@ class CNN_Triplet_Model(object):
                 loss = self.criterion(anchor, positive, negative)
 
                 valid_loss += loss.detach().cpu().numpy() 
-
+            
+            val_future_list = turn_val_into_future(val_list, self.CFG.random_state)
+            
+            self.real_eval(val_future_list, 20)
 
             valid_loss /= n_batch
             print(f"Validation Loss: {valid_loss:.3f}")
 
         if return_loss:
             return valid_loss
+
+    def real_eval(self, future_list, row_batch_size):
+
+        correct = 0
+        total = 0
+    
+    
+        left_image = []
+        right_images = []
+
+        with torch.no_grad():
+
+            results = []
+            for id, row in future_list.iterrows():
+                sample = row.values
+                left_image.append(self.CFG.images[f'{sample[0]}.jpg'])
+                right_images.extend([self.CFG.images[f'{image}.jpg'] for image in sample[1:]])
+
+                if (id+1) % row_batch_size == 0:
+                
+                    left_image = torch.tensor(np.array(left_image)).to(self.device)
+                    right_images = torch.tensor(np.array(right_images)).to(self.device)
+
+                    left_embeddings = self.model(x_anchor = left_image)
+                    right_embeddings = self.model(x_positive = right_images)
+
+                    right_embeddings = right_embeddings.reshape(int(len(right_embeddings)/row_batch_size), row_batch_size, self.CFG.embed_dim)
+
+                    scores = []
+                    for i in range(len(left_embeddings)):
+                        scores.extend([(1/(1e-5 + torch.sqrt(torch.sum(torch.pow(left_embeddings[i] - right_embed, 2))))).cpu().numpy() for right_embed in right_embeddings[i]])
+                    
+                    scores = np.array(scores)
+                    scores = scores.reshape(int(len(scores)/row_batch_size), row_batch_size)
+                    results.extend(scores)
+                    second_largest_values = np.partition(scores, -2, axis=1)[:, -2]
+                    correct += sum(scores[:, 0] >= second_largest_values)
+                    total += len(second_largest_values)
+                
+                    left_image = []
+                    right_images = []
+                
+            if (id+1) % row_batch_size != 0: # last ones
+            
+                left_image = torch.tensor(np.array(left_image)).to(self.device)
+                right_images = torch.tensor(np.array(right_images)).to(self.device)
+
+                left_embeddings = self.model(x_anchor = left_image)
+                right_embeddings = self.model(x_positive = right_images)
+
+                right_embeddings = right_embeddings.reshape(int(len(right_embeddings)/row_batch_size), row_batch_size, self.CFG.embed_dim)
+
+                scores = []
+                for i in range(len(left_embeddings)):
+                    scores.extend([(1/(1e-5 + torch.sqrt(torch.sum(torch.pow(left_embeddings[i] - right_embed, 2))))).cpu().numpy() for right_embed in right_embeddings[i]])
+
+                scores = np.array(scores)
+                scores = scores.reshape(int(len(scores)/row_batch_size), row_batch_size)
+                results.extend(scores)
+                second_largest_values = np.partition(scores, -2, axis=1)[:, -2]
+                correct += sum(scores[:, 0] >= second_largest_values)
+                total += len(second_largest_values)
+
+
+            left_image = []
+            right_images = []
+        
+        print('Nominal Correct:', correct/total)
+        
+        return pd.DataFrame(results, columns = range(20))

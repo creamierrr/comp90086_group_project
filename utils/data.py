@@ -1,9 +1,10 @@
 from environment import *
 
 # prepare image for the model
-def prepare_image(filepath):
+def prepare_image(filepath, resize_shape = 0):
     img = cv2.imread(filepath)
-    img = cv2.resize(img, (64,64))
+    if resize_shape:
+        img = cv2.resize(img, (resize_shape, resize_shape))
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     
     img = img.astype("float32")
@@ -104,4 +105,21 @@ def DataLoader_Triplet(x_list, batch_number, batch_size, CFG):
     x_positive = np.array(x_positive)
     x_negative = np.array(x_negative)
 
-    return torch.FloatTensor(x_anchor), torch.FloatTensor(x_positive), torch.FloatTensor(x_negative)
+    return torch.FloatTensor(x_anchor), torch.FloatTensor(x_positive), torch.FloatTensor(x_negative)\
+
+
+def turn_val_into_future(val_list, seed):
+    
+    left = list(val_list['left'])
+    right = list(val_list['right'])
+
+    np.random.seed(seed)
+
+    new_list = []
+    for i in range(len(right)):
+        new_right = [left[i], right[i]]
+        right_tmp = [right[j] for j in range(len(right)) if j != i]
+        new_right.extend(np.random.choice(right_tmp, 19, replace = False))
+        new_list.append(new_right)
+
+    return pd.DataFrame(new_list, columns = ['left'] + [f'c{i}' for i in range(19+1)])

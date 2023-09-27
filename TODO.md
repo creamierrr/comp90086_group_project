@@ -1,8 +1,8 @@
-- evaluation framework
-- evaluation framework add into eval() and train()
+- bug in eval framework
+- crop off linear layer of the hub models
 
 - simiase network
 
-- crop off linear layer of the hub models
+
 
 - TODO: batch normalise

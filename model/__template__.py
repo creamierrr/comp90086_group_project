@@ -189,8 +189,14 @@ class CNN_Categorisation_Model(object):
                 total += len(second_largest_values)
 
         print('Nominal Correct:', correct/total)
+
+        out = future_list[['left']]
+
+        results_df = pd.DataFrame(results, columns = [f'c{i}' for i in range(20)])
+
+        out = pd.concat([out, results_df], axis = 1)
         
-        return pd.DataFrame(results, columns = range(20))
+        return out
 
 
 class CNN_Triplet_Model(object):
@@ -378,5 +384,11 @@ class CNN_Triplet_Model(object):
             right_images = []
         
         print('Nominal Correct:', correct/total)
+
+        out = future_list[['left']]
         
-        return pd.DataFrame(results, columns = range(20))
+        results_df = pd.DataFrame(results, columns = [f'c{i}' for i in range(20)])
+
+        out = pd.concat([out, results_df], axis = 1)
+
+        return out

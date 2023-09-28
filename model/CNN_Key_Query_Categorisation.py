@@ -15,6 +15,9 @@ class CNN_Key_Query_Categorisation(CNN_Categorisation_Model):
             self.encoder_left = torch.hub.load('pytorch/vision:v0.10.0', self.CFG.encoder, pretrained=self.CFG.pretrained)
             self.encoder_right = torch.hub.load('pytorch/vision:v0.10.0', self.CFG.encoder, pretrained=self.CFG.pretrained)
 
+            self.encoder_left = nn.Sequential(*list(self.encoder_left.children())[:-1])
+            self.encoder_right = nn.Sequential(*list(self.encoder_right.children())[:-1])
+
             sample_input = torch.randn(self.CFG.input_shape)  
             sample_output = self.encoder_left(sample_input)
 

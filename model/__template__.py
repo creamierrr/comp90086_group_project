@@ -132,7 +132,7 @@ class CNN_Categorisation_Model(object):
 
             val_future_list = turn_val_into_future(val_list, self.CFG.random_state)
             
-            self.real_eval(val_future_list, 20)
+            self.real_eval(val_future_list, batch_size)
 
             valid_loss /= n_batch
             valid_accuracy = accuracy_score(valid_pred, valid_true)
@@ -309,7 +309,7 @@ class CNN_Triplet_Model(object):
             
             val_future_list = turn_val_into_future(val_list, self.CFG.random_state)
             
-            self.real_eval(val_future_list, 20)
+            self.real_eval(val_future_list, batch_size)
 
             valid_loss /= n_batch
             print(f"Validation Loss: {valid_loss:.3f}")
@@ -342,14 +342,15 @@ class CNN_Triplet_Model(object):
                     left_embeddings = self.model(x_anchor = left_image)
                     right_embeddings = self.model(x_positive = right_images)
 
-                    right_embeddings = right_embeddings.reshape(row_batch_size, int(len(right_embeddings)/row_batch_size), self.CFG.embed_dim)
+                    len_right = len(right_embeddings)
 
+                    right_embeddings = right_embeddings.reshape(row_batch_size, int(len_right/row_batch_size), self.CFG.embed_dim)
                     scores = []
                     for i in range(len(left_embeddings)):
                         scores.extend([(1/(1e-5 + torch.sqrt(torch.sum(torch.pow(left_embeddings[i] - right_embed, 2))))).cpu().numpy() for right_embed in right_embeddings[i]])
                     
                     scores = np.array(scores)
-                    scores = scores.reshape(row_batch_size, int(len(right_embeddings)/row_batch_size))
+                    scores = scores.reshape(row_batch_size, int(len_right/row_batch_size))
                     results.extend(scores)
                     second_largest_values = np.partition(scores, -2, axis=1)[:, -2]
                     correct += sum(scores[:, 0] >= second_largest_values)
@@ -362,18 +363,18 @@ class CNN_Triplet_Model(object):
             
                 left_image = torch.tensor(np.array(left_image)).to(self.device)
                 right_images = torch.tensor(np.array(right_images)).to(self.device)
-
+                
                 left_embeddings = self.model(x_anchor = left_image)
                 right_embeddings = self.model(x_positive = right_images)
+                len_right = len(right_embeddings)
 
-                right_embeddings = right_embeddings.reshape(row_batch_size, int(len(right_embeddings)/row_batch_size), self.CFG.embed_dim)
-
+                right_embeddings = right_embeddings.reshape(row_batch_size, int(len_right/row_batch_size), self.CFG.embed_dim)
                 scores = []
                 for i in range(len(left_embeddings)):
                     scores.extend([(1/(1e-5 + torch.sqrt(torch.sum(torch.pow(left_embeddings[i] - right_embed, 2))))).cpu().numpy() for right_embed in right_embeddings[i]])
 
                 scores = np.array(scores)
-                scores = scores.reshape(row_batch_size, int(len(right_embeddings)/row_batch_size))
+                scores = scores.reshape(row_batch_size, int(len_right/row_batch_size))
                 results.extend(scores)
                 second_largest_values = np.partition(scores, -2, axis=1)[:, -2]
                 correct += sum(scores[:, 0] >= second_largest_values)

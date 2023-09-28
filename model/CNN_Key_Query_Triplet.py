@@ -15,8 +15,9 @@ class CNN_Key_Query_Triplet(CNN_Triplet_Model):
             self.encoder_query = torch.hub.load('pytorch/vision:v0.10.0', self.CFG.encoder, pretrained=self.CFG.pretrained)
             self.encoder_key = torch.hub.load('pytorch/vision:v0.10.0', self.CFG.encoder, pretrained=self.CFG.pretrained)
 
-            self.encoder_query = nn.Sequential(*list(self.encoder_query.children())[:-1])
-            self.encoder_key = nn.Sequential(*list(self.encoder_key.children())[:-1])
+            if self.crop_pretrained_linear:
+                self.encoder_query = nn.Sequential(*list(self.encoder_query.children())[:-1])
+                self.encoder_key = nn.Sequential(*list(self.encoder_key.children())[:-1])
 
             sample_input = torch.randn(self.CFG.input_shape)  
             sample_output = self.encoder_query(sample_input)

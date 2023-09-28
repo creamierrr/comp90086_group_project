@@ -11,6 +11,10 @@ def prepare_image(filepath, resize_shape = 0):
     img /= 255.0
     return img
 
+def softmax(row):
+    e_x = np.exp(row - np.max(row))  # Subtracting the max value for numerical stability
+    return e_x / e_x.sum()
+
 def DataFactory_Categorisation(train_list, num_false, seed, target = 1):
     """ 
         Input:

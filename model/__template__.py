@@ -132,7 +132,7 @@ class CNN_Categorisation_Model(object):
 
             val_future_list = turn_val_into_future(val_list, self.CFG.random_state)
             
-            self.real_eval(val_future_list, batch_size)
+            self.real_eval(val_future_list, self.CFG.real_eval_batch_size)
 
             valid_loss /= n_batch
             valid_accuracy = accuracy_score(valid_pred, valid_true)
@@ -193,6 +193,7 @@ class CNN_Categorisation_Model(object):
         out = future_list[['left']]
 
         results_df = pd.DataFrame(results, columns = [f'c{i}' for i in range(20)])
+        results_df = results_df.apply(softmax, axis = 1)
 
         out = pd.concat([out, results_df], axis = 1)
         
@@ -309,7 +310,7 @@ class CNN_Triplet_Model(object):
             
             val_future_list = turn_val_into_future(val_list, self.CFG.random_state)
             
-            self.real_eval(val_future_list, batch_size)
+            self.real_eval(val_future_list, self.CFG.real_eval_batch_size)
 
             valid_loss /= n_batch
             print(f"Validation Loss: {valid_loss:.3f}")
@@ -389,6 +390,7 @@ class CNN_Triplet_Model(object):
         out = future_list[['left']]
         
         results_df = pd.DataFrame(results, columns = [f'c{i}' for i in range(20)])
+        results_df = results_df.apply(softmax, axis = 1)
 
         out = pd.concat([out, results_df], axis = 1)
 

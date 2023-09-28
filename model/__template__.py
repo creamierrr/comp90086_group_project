@@ -166,7 +166,7 @@ class CNN_Categorisation_Model(object):
 
                     scores = self.model(left_images, right_images)[:, 1]
                     scores = scores.cpu().numpy()
-                    scores = scores.reshape(int(len(scores)/row_batch_size), row_batch_size)
+                    scores = scores.reshape(row_batch_size, int(len(right_images)/row_batch_size))
                     results.extend(scores)
                     second_largest_values = np.partition(scores, -2, axis=1)[:, -2]
                     correct += sum(scores[:, 0] >= second_largest_values)
@@ -182,7 +182,7 @@ class CNN_Categorisation_Model(object):
 
                 scores = self.model(left_images, right_images)[:, 1]
                 scores = scores.cpu().numpy()
-                scores = scores.reshape(int(len(scores)/row_batch_size), row_batch_size)
+                scores = scores.reshape(row_batch_size, int(len(right_images)/row_batch_size))
                 results.extend(scores)
                 second_largest_values = np.partition(scores, -2, axis=1)[:, -2]
                 correct += sum(scores[:, 0] >= second_largest_values)
@@ -342,14 +342,14 @@ class CNN_Triplet_Model(object):
                     left_embeddings = self.model(x_anchor = left_image)
                     right_embeddings = self.model(x_positive = right_images)
 
-                    right_embeddings = right_embeddings.reshape(int(len(right_embeddings)/row_batch_size), row_batch_size, self.CFG.embed_dim)
+                    right_embeddings = right_embeddings.reshape(row_batch_size, int(len(right_embeddings)/row_batch_size), self.CFG.embed_dim)
 
                     scores = []
                     for i in range(len(left_embeddings)):
                         scores.extend([(1/(1e-5 + torch.sqrt(torch.sum(torch.pow(left_embeddings[i] - right_embed, 2))))).cpu().numpy() for right_embed in right_embeddings[i]])
                     
                     scores = np.array(scores)
-                    scores = scores.reshape(int(len(scores)/row_batch_size), row_batch_size)
+                    scores = scores.reshape(row_batch_size, int(len(right_embeddings)/row_batch_size))
                     results.extend(scores)
                     second_largest_values = np.partition(scores, -2, axis=1)[:, -2]
                     correct += sum(scores[:, 0] >= second_largest_values)
@@ -366,14 +366,14 @@ class CNN_Triplet_Model(object):
                 left_embeddings = self.model(x_anchor = left_image)
                 right_embeddings = self.model(x_positive = right_images)
 
-                right_embeddings = right_embeddings.reshape(int(len(right_embeddings)/row_batch_size), row_batch_size, self.CFG.embed_dim)
+                right_embeddings = right_embeddings.reshape(row_batch_size, int(len(right_embeddings)/row_batch_size), self.CFG.embed_dim)
 
                 scores = []
                 for i in range(len(left_embeddings)):
                     scores.extend([(1/(1e-5 + torch.sqrt(torch.sum(torch.pow(left_embeddings[i] - right_embed, 2))))).cpu().numpy() for right_embed in right_embeddings[i]])
 
                 scores = np.array(scores)
-                scores = scores.reshape(int(len(scores)/row_batch_size), row_batch_size)
+                scores = scores.reshape(row_batch_size, int(len(right_embeddings)/row_batch_size))
                 results.extend(scores)
                 second_largest_values = np.partition(scores, -2, axis=1)[:, -2]
                 correct += sum(scores[:, 0] >= second_largest_values)

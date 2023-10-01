@@ -12,8 +12,8 @@ class CNN_Key_Query_Categorisation(CNN_Categorisation_Model):
 
             torch.manual_seed(self.CFG.random_state)
 
-            self.encoder_left = torch.hub.load('pytorch/vision:v0.10.0', self.CFG.encoder, pretrained=self.CFG.pretrained)
-            self.encoder_right = torch.hub.load('pytorch/vision:v0.10.0', self.CFG.encoder, pretrained=self.CFG.pretrained)
+            self.encoder_left = torch.hub.load('pytorch/vision:v0.10.0', self.CFG.encoder, pretrained=self.CFG.pretrained) if type(self.CFG.encoder) == str else self.CFG.encoder
+            self.encoder_right = torch.hub.load('pytorch/vision:v0.10.0', self.CFG.encoder, pretrained=self.CFG.pretrained) if type(self.CFG.encoder) == str else self.CFG.encoder
 
             self.encoder_left = nn.Sequential(*list(self.encoder_left.children())[:-1])
             self.encoder_right = nn.Sequential(*list(self.encoder_right.children())[:-1])

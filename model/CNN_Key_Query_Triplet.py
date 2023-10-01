@@ -12,8 +12,8 @@ class CNN_Key_Query_Triplet(CNN_Triplet_Model):
 
             torch.manual_seed(self.CFG.random_state)
 
-            self.encoder_query = torch.hub.load('pytorch/vision:v0.10.0', self.CFG.encoder, pretrained=self.CFG.pretrained)
-            self.encoder_key = torch.hub.load('pytorch/vision:v0.10.0', self.CFG.encoder, pretrained=self.CFG.pretrained)
+            self.encoder_query = torch.hub.load('pytorch/vision:v0.10.0', self.CFG.encoder, pretrained=self.CFG.pretrained) if type(self.CFG.encoder) == str else self.CFG.encoder
+            self.encoder_key = torch.hub.load('pytorch/vision:v0.10.0', self.CFG.encoder, pretrained=self.CFG.pretrained) if type(self.CFG.encoder) == str else self.CFG.encoder
 
             if self.CFG.crop_pretrained_linear:
                 self.encoder_query = nn.Sequential(*list(self.encoder_query.children())[:-1])

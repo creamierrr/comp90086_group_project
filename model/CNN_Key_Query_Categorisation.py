@@ -18,7 +18,7 @@ class CNN_Key_Query_Categorisation(CNN_Categorisation_Model):
             self.encoder_left = nn.Sequential(*list(self.encoder_left.children())[:-1])
             self.encoder_right = nn.Sequential(*list(self.encoder_right.children())[:-1])
 
-            if self.crop_pretrained_linear:
+            if self.CFG.crop_pretrained_linear:
                 sample_input = torch.randn(self.CFG.input_shape)  
                 sample_output = self.encoder_left(sample_input)
 

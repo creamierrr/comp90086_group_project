@@ -244,8 +244,11 @@ class CNN_Triplet_Model(object):
 
             if not patience:
                 break
-            
-            x_list = self.CFG.DataFactory_Triplet(train_list, self.CFG.num_false, self.CFG.random_state)
+
+            if self.CFG.resample and epoch != 0:
+                x_list = self.CFG.DataFactory_Triplet(train_list, self.CFG.num_false, self.CFG.random_state, most_similar_hard_negatives)
+            else:
+                x_list = self.CFG.DataFactory_Triplet(train_list, self.CFG.num_false, self.CFG.random_state)
 
             epoch_loss = 0
             n_batch = len(x_list)//batch_size + 1
@@ -270,11 +273,11 @@ class CNN_Triplet_Model(object):
                     nn.utils.clip_grad_norm_(self.model.parameters(), 2.0)
                 self.optimizer.step()
                 epoch_loss += loss.detach().cpu().numpy()
-
+            
             epoch_loss /= n_batch
             print(f"Epoch: {epoch + 1:>3} - Loss: {epoch_loss:.3f}")
 
-
+            # do validation
             if val_list is not None:
                 valid_loss = self.eval(val_list, batch_size=batch_size, return_loss=True)
                 self.model.train()
@@ -285,6 +288,10 @@ class CNN_Triplet_Model(object):
                     patience -= 1
                 if scheduler:
                     scheduler.step(valid_loss)
+
+            if self.CFG.resample: # re-rank the negative instances so each time we train on the hardest negatives
+            
+                most_similar_hard_negatives = self.re_rank(train_list, batch_size)
     
     
     def eval(self, val_list, batch_size=128, return_loss=False):
@@ -309,7 +316,7 @@ class CNN_Triplet_Model(object):
                 valid_loss += loss.detach().cpu().numpy() 
             
             val_future_list = turn_val_into_future(val_list, self.CFG.random_state)
-            
+
             self.real_eval(val_future_list, self.CFG.real_eval_batch_size)
 
             valid_loss /= n_batch
@@ -381,7 +388,6 @@ class CNN_Triplet_Model(object):
                 correct += sum(scores[:, 0] >= second_largest_values)
                 total += len(second_largest_values)
 
-
             left_image = []
             right_images = []
         
@@ -395,3 +401,64 @@ class CNN_Triplet_Model(object):
         out = pd.concat([out, results_df], axis = 1)
 
         return out
+    
+    def re_rank(self, train_list, batch_size):
+
+        left = list(train_list['left'])
+        right = list(train_list['right'])
+
+        left_embeddings = self.get_embeddings(list(train_list['left']), batch_size, mode = 'left')
+        right_embeddings = self.get_embeddings(list(train_list['right']), batch_size, mode = 'right')
+
+        # most_similar_hard_negatives = {}
+
+        # for i, left_embedding in enumerate(left_embeddings):
+        #     similarity = {}
+        #     for j, right_embedding in enumerate(right_embeddings):
+        #         similarity[right[j]] = torch.sum(torch.pow(left_embedding - right_embedding, 2))
+        #     del similarity[right[i]]
+        #     similarity = sorted(similarity.items(), key=lambda item: item[1])
+
+        #     most_similar_hard_negatives[left[i]] = similarity
+
+        left_embeddings_tensor = torch.stack(left_embeddings)
+        right_embeddings_tensor = torch.stack(right_embeddings)
+
+        distances = torch.sum((left_embeddings_tensor.unsqueeze(1) - right_embeddings_tensor.unsqueeze(0))**2, dim=2)
+        
+        most_similar_hard_negatives = {}
+
+        for i in range(len(left_embeddings)):
+            sorted_indices = torch.argsort(distances[i])
+
+            similar_hard_negatives = []
+            for j in range(len(sorted_indices)):
+                right_name = right[sorted_indices[j]]
+                if right_name != right[i]:
+                    similar_hard_negatives.append((right_name, distances[i, sorted_indices[j]]))
+            most_similar_hard_negatives[left[i]] = similar_hard_negatives
+        
+        return most_similar_hard_negatives
+            
+
+    def get_embeddings(self, input_list, batch_size, mode):
+        
+        self.model.eval()
+
+        with torch.no_grad():
+
+            embeddings = []
+            for i in range(len(input_list)//batch_size + 1):
+                
+                input_images = [self.CFG.images[f'{img}.jpg'] for img in input_list[i*batch_size:(i+1)*batch_size]]
+                input_images = torch.tensor(np.array(input_images)).to(self.device)
+
+                if mode == 'left':
+                    embedding = self.model(x_anchor = input_images)
+                elif mode == 'right':
+                    embedding = self.model(x_positive = input_images)
+                
+                embeddings.extend(embedding)
+                
+                
+            return embeddings

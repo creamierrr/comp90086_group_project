@@ -46,7 +46,7 @@ def DataFactory_Categorisation(train_list, num_false, seed, target = 1):
 
     return x_list, y_list
 
-def DataFactory_Triplet(train_list, num_false, seed, ranking = None):
+def DataFactory_Triplet(train_list, num_false, seed, most_similar_hard_negatives = None):
     """ 
         Input:
             Num_False: number of false samples for each true sample
@@ -61,17 +61,29 @@ def DataFactory_Triplet(train_list, num_false, seed, ranking = None):
 
     x_list = []
 
-    np.random.seed(seed)
+    if most_similar_hard_negatives is not None:
 
-    for i in range(len(train_list)):
+        for i in range(len(train_list)):
+
+            ranked_right_tuples = most_similar_hard_negatives[left[i]][:num_false]
+            ranked_right = [right_tuple[0] for right_tuple in ranked_right_tuples]
+
+            for j in range(len(ranked_right)):
+                x_list.append((left[i], right[i], ranked_right[j]))
+
+    else:
+
+        np.random.seed(seed)
+
+        for i in range(len(train_list)):
+            
+            right_tmp = [right[j] for j in range(len(right)) if j != i]
         
-        right_tmp = [right[j] for j in range(len(right)) if j != i]
-    
-        sampled_right = np.random.choice(right_tmp, num_false, replace = False)
+            sampled_right = np.random.choice(right_tmp, num_false, replace = False)
 
-        for j in range(num_false):
+            for j in range(num_false):
 
-            x_list.append((left[i], right[i], sampled_right[j]))
+                x_list.append((left[i], right[i], sampled_right[j]))
 
     return x_list
 

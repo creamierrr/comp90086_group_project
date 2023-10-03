@@ -410,22 +410,11 @@ class CNN_Triplet_Model(object):
         left_embeddings = self.get_embeddings(list(train_list['left']), batch_size, mode = 'left')
         right_embeddings = self.get_embeddings(list(train_list['right']), batch_size, mode = 'right')
 
-        # most_similar_hard_negatives = {}
-
-        # for i, left_embedding in enumerate(left_embeddings):
-        #     similarity = {}
-        #     for j, right_embedding in enumerate(right_embeddings):
-        #         similarity[right[j]] = torch.sum(torch.pow(left_embedding - right_embedding, 2))
-        #     del similarity[right[i]]
-        #     similarity = sorted(similarity.items(), key=lambda item: item[1])
-
-        #     most_similar_hard_negatives[left[i]] = similarity
-
         left_embeddings_tensor = torch.stack(left_embeddings)
         right_embeddings_tensor = torch.stack(right_embeddings)
 
         distances = torch.sum((left_embeddings_tensor.unsqueeze(1) - right_embeddings_tensor.unsqueeze(0))**2, dim=2)
-        
+
         most_similar_hard_negatives = {}
 
         for i in range(len(left_embeddings)):

@@ -211,6 +211,8 @@ class CNN_Triplet_Model(object):
         self.name  = name
         self.model = self.Model(self.CFG)
 
+        assert self.CFG.num_false >= self.CFG.num_random_sample_false, 'num_false must be greater than or equal to num_random_sample'
+
         torch.manual_seed(self.CFG.random_state)
         
         self.optimizer = AdamW(self.model.parameters(), lr=self.CFG.lr)
@@ -246,7 +248,7 @@ class CNN_Triplet_Model(object):
                 break
 
             if self.CFG.resample and epoch != 0:
-                x_list = self.CFG.DataFactory_Triplet(train_list, self.CFG.num_false, self.CFG.random_state, most_similar_hard_negatives)
+                x_list = self.CFG.DataFactory_Triplet(train_list, self.CFG.num_false, self.CFG.random_state, most_similar_hard_negatives, self.CFG)
             else:
                 x_list = self.CFG.DataFactory_Triplet(train_list, self.CFG.num_false, self.CFG.random_state)
 

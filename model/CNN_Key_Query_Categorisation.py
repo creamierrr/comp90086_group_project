@@ -77,7 +77,6 @@ class CNN_Key_Query_Categorisation(CNN_Categorisation_Model):
                     x_left = layer(x_left)
                 for layer in self.mlp_right:
                     x_right = layer(x_right)
-                    x_right = layer(x_right)
                 
             x_combined_embed = torch.cat((x_left, x_right), 1)
 

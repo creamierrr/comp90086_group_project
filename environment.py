@@ -22,6 +22,12 @@ import torch.nn as nn
 from torch.optim import AdamW, lr_scheduler
 from torch.utils.data import Dataset, DataLoader
 import torch.hub
+import torchvision
 
 import sklearn
 from sklearn.metrics import accuracy_score
+
+import torch.nn.functional as F
+
+def cosine_similarity(a, b):
+    return 1 - F.cosine_similarity(a, b)

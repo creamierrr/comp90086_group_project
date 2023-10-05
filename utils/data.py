@@ -1,15 +1,56 @@
 from environment import *
 
 # prepare image for the model
-def prepare_image(filepath, resize_shape = 0):
+def prepare_image(filepath, resize_shape = 0, normalize = 0):
     img = cv2.imread(filepath)
     if resize_shape:
-        img = cv2.resize(img, (resize_shape, resize_shape))
+        
+        # padding if the resize shape is greater than the original image shape
+        if resize_shape > img.shape[0] or resize_shape > img.shape[1]:
+            # Get the center coordinates of the image
+            height, width, _ = img.shape
+
+            pad_width = max(0, resize_shape - width)
+            pad_height = max(0, resize_shape - height)
+
+            # Calculate padding for top, bottom, left, and right
+            top = pad_height // 2
+            bottom = pad_height - top
+            left = pad_width // 2
+            right = pad_width - left
+
+            # Add zero-padding to the image
+            padded_img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(0, 0, 0))
+            img = padded_img
+
+        # Get the center coordinates of the image
+        height, width, _ = img.shape
+        center_x, center_y = width // 2, height // 2
+
+        # Calculate crop boundaries
+        left = center_x - resize_shape // 2
+        top = center_y - resize_shape // 2
+        right = center_x + resize_shape // 2
+        bottom = center_y + resize_shape // 2
+
+        # Perform the center crop
+        center_cropped_img = img[top:bottom, left:right]
+        img = center_cropped_img
+
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    
+
     img = img.astype("float32")
-    img /= 255.0
-    return img
+
+    if normalize:
+        img /= 255.0  # Normalize pixel values to [0, 1]
+        mean = np.array([0.485, 0.456, 0.406])
+        std = np.array([0.229, 0.224, 0.225])
+        img = (img - mean) / std  # Apply mean and standard deviation normalization
+    
+    else:
+        img /= 255.0
+
+    return img.astype("float32")
 
 def softmax(row):
     e_x = np.exp(row - np.max(row))  # Subtracting the max value for numerical stability

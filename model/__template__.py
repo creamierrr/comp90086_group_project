@@ -301,7 +301,7 @@ class CNN_Triplet_Model(object):
 
         with torch.no_grad():
 
-            x_list = self.CFG.DataFactory_Triplet(val_list, self.CFG.num_false, self.CFG.random_state)
+            x_list = self.CFG.DataFactory_Triplet(val_list, 19, self.CFG.random_state)
 
             valid_loss = 0
             n_batch = len(x_list)//batch_size + 1
@@ -422,11 +422,14 @@ class CNN_Triplet_Model(object):
         for i in range(len(left_embeddings)):
             sorted_indices = torch.argsort(distances[i])
 
+            switch = False
             similar_hard_negatives = []
             for j in range(len(sorted_indices)):
                 right_name = right[sorted_indices[j]]
-                if right_name != right[i]:
-                    similar_hard_negatives.append((right_name, distances[i, sorted_indices[j]]))
+                if switch:
+                    similar_hard_negatives.append((right_name, distances[i, sorted_indices[j]])) 
+                if right_name == right[i]:
+                    switch = True
             most_similar_hard_negatives[left[i]] = similar_hard_negatives
         
         return most_similar_hard_negatives

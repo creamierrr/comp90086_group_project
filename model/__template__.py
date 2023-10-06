@@ -455,6 +455,9 @@ class CNN_Triplet_Model(object):
                 input_images = [self.CFG.images[f'{img}.jpg'] for img in input_list[i*batch_size:(i+1)*batch_size]]
                 input_images = torch.tensor(np.array(input_images)).to(self.device)
 
+                if len(input_images) == 0:
+                    continue
+
                 if mode == 'left':
                     embedding = self.model(x_anchor = input_images)
                 elif mode == 'right':

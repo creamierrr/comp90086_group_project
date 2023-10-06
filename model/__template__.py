@@ -133,7 +133,7 @@ class CNN_Categorisation_Model(object):
 
             val_future_list = turn_val_into_future(val_list, self.CFG.random_state)
             
-            real_val_accu = self.real_eval(val_future_list, self.CFG.real_eval_batch_size)
+            out, real_val_accu = self.real_eval(val_future_list, self.CFG.real_eval_batch_size)
 
             valid_loss /= n_batch
             valid_accuracy = accuracy_score(valid_pred, valid_true)
@@ -321,7 +321,7 @@ class CNN_Triplet_Model(object):
             
             val_future_list = turn_val_into_future(val_list, self.CFG.random_state)
 
-            real_val_accu = self.real_eval(val_future_list, self.CFG.real_eval_batch_size)
+            out, real_val_accu = self.real_eval(val_future_list, self.CFG.real_eval_batch_size)
 
             valid_loss /= n_batch
             print(f"Validation Loss: {valid_loss:.3f}")

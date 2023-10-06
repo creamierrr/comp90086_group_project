@@ -40,7 +40,8 @@ class CNN_Categorisation_Model(object):
         np.random.seed(self.CFG.random_state)
         seeds = [np.random.randint(1, 1000) for _ in range(epochs)]
 
-        min_loss = math.inf
+        # min_loss = math.inf
+        max_accu = -math.inf
         for epoch in range(epochs):
 
             if not patience:
@@ -88,10 +89,10 @@ class CNN_Categorisation_Model(object):
 
 
             if val_list is not None:
-                valid_loss = self.eval(val_list, batch_size=batch_size, return_loss=True)
+                valid_loss, valid_accu = self.eval(val_list, batch_size=batch_size, return_loss=True)
                 self.model.train()
-                if valid_loss <= min_loss:
-                    min_loss = valid_loss
+                if valid_accu >= max_accu:
+                    max_accu = valid_accu
                     self.save(mark)
                 else:
                     patience -= 1
@@ -132,14 +133,14 @@ class CNN_Categorisation_Model(object):
 
             val_future_list = turn_val_into_future(val_list, self.CFG.random_state)
             
-            self.real_eval(val_future_list, self.CFG.real_eval_batch_size)
+            real_val_accu = self.real_eval(val_future_list, self.CFG.real_eval_batch_size)
 
             valid_loss /= n_batch
             valid_accuracy = accuracy_score(valid_pred, valid_true)
             print(f"Validation Loss: {valid_loss:.3f}, Accuracy: {valid_accuracy:.3f}")
 
         if return_loss:
-            return valid_loss
+            return valid_loss, real_val_accu
         else:
             return valid_pred, valid_true
     
@@ -197,7 +198,7 @@ class CNN_Categorisation_Model(object):
 
         out = pd.concat([out, results_df], axis = 1)
         
-        return out
+        return out, correct/total
 
 
 class CNN_Triplet_Model(object):
@@ -241,7 +242,8 @@ class CNN_Triplet_Model(object):
         np.random.seed(self.CFG.random_state)
         seeds = [np.random.randint(1, 1000) for _ in range(epochs)]
 
-        min_loss = math.inf
+        # min_loss = math.inf
+        max_accu = -math.inf
         for epoch in range(epochs):
 
             if not patience:
@@ -281,10 +283,10 @@ class CNN_Triplet_Model(object):
 
             # do validation
             if val_list is not None:
-                valid_loss = self.eval(val_list, batch_size=batch_size, return_loss=True)
+                valid_loss, valid_accu = self.eval(val_list, batch_size=batch_size, return_loss=True)
                 self.model.train()
-                if valid_loss <= min_loss:
-                    min_loss = valid_loss
+                if valid_accu >= max_accu:
+                    max_accu = valid_accu
                     self.save(mark)
                 else:
                     patience -= 1
@@ -319,13 +321,13 @@ class CNN_Triplet_Model(object):
             
             val_future_list = turn_val_into_future(val_list, self.CFG.random_state)
 
-            self.real_eval(val_future_list, self.CFG.real_eval_batch_size)
+            real_val_accu = self.real_eval(val_future_list, self.CFG.real_eval_batch_size)
 
             valid_loss /= n_batch
             print(f"Validation Loss: {valid_loss:.3f}")
 
         if return_loss:
-            return valid_loss
+            return valid_loss, real_val_accu
 
     def real_eval(self, future_list, row_batch_size):
 
@@ -402,7 +404,7 @@ class CNN_Triplet_Model(object):
 
         out = pd.concat([out, results_df], axis = 1)
 
-        return out
+        return out, correct/total
     
     def re_rank(self, train_list, batch_size):
 

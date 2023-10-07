@@ -120,6 +120,9 @@ class CNN_Categorisation_Model(object):
                 
                 x_left, x_right, y = self.CFG.DataLoader_Categorisation(x_list, y_list, mini_batch_number, batch_size, self.CFG)
 
+                if len(x_left) == 0:
+                    continue
+
                 x_left, x_right, y = x_left.to(self.device), x_right.to(self.device), y.to(self.device)
                 pred, true = self.model(x_left, x_right), y
 
@@ -317,6 +320,9 @@ class CNN_Triplet_Model(object):
             for mini_batch_number in range(n_batch):
                 
                 x_anchor, x_positive, x_negative = self.CFG.DataLoader_Triplet(x_list, mini_batch_number, batch_size, self.CFG)
+
+                if len(x_anchor) == 0:
+                    continue
 
                 x_anchor, x_positive, x_negative = x_anchor.to(self.device), x_positive.to(self.device), x_negative.to(self.device)
                 anchor, positive, negative = self.model(x_anchor = x_anchor, x_positive = x_positive, x_negative = x_negative)

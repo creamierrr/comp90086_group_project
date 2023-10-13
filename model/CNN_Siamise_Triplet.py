@@ -70,7 +70,7 @@ class CNN_Siamise_Triplet(CNN_Triplet_Model):
                         x_positive = layer(x_positive)
                         x_negative = layer(x_negative)
                 
-                if final_relu:
+                if self.CFG.final_relu:
         
                     return self.relu(self.out_encoding(x_anchor)), self.relu(self.out_encoding(x_positive)), self.relu(self.out_encoding(x_negative)) # export embedding
 
@@ -93,7 +93,7 @@ class CNN_Siamise_Triplet(CNN_Triplet_Model):
                     for layer in self.mlp_encoding: # go through mlp layers
                         x_anchor = layer(x_anchor)
 
-                if final_relu:
+                if self.CFG.final_relu:
         
                     return self.relu(self.out_encoding(x_anchor))
                 else:
@@ -115,7 +115,7 @@ class CNN_Siamise_Triplet(CNN_Triplet_Model):
                         x_positive = layer(x_positive)
                 
 
-                if final_relu:
+                if self.CFG.final_relu:
                     return self.relu(self.out_encoding(x_positive))
                 else:
                     return self.out_encoding(x_positive)

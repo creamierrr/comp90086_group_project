@@ -81,7 +81,7 @@ class CNN_Key_Query_Triplet(CNN_Triplet_Model):
                         x_positive = layer(x_positive)
                         x_negative = layer(x_negative)
                 
-                if final_relu:
+                if self.CFG.final_relu:
         
                     return self.relu(self.out_query(x_anchor)), self.relu(self.out_key(x_positive)), self.relu(self.out_key(x_negative))
 
@@ -104,7 +104,7 @@ class CNN_Key_Query_Triplet(CNN_Triplet_Model):
                     for layer in self.mlp_query: # go through mlp layers
                         x_anchor = layer(x_anchor)
 
-                if final_relu:
+                if self.CFG.final_relu:
                     return self.relu(self.out_query(x_anchor))
                 else:
                     return self.out_query(x_anchor)
@@ -124,7 +124,7 @@ class CNN_Key_Query_Triplet(CNN_Triplet_Model):
                     for layer in self.mlp_key:
                         x_positive = layer(x_positive)
 
-                if final_relu:
+                if self.CFG.final_relu:
                     return self.relu(self.out_key(x_positive))
                 else:
                     return self.out_key(x_positive)

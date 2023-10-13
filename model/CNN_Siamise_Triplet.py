@@ -69,9 +69,15 @@ class CNN_Siamise_Triplet(CNN_Triplet_Model):
                         x_anchor = layer(x_anchor)
                         x_positive = layer(x_positive)
                         x_negative = layer(x_negative)
+                
+                if final_relu:
         
-                return self.relu(self.out_encoding(x_anchor)), self.relu(self.out_encoding(x_positive)), self.relu(self.out_encoding(x_negative)) # export embedding
-        
+                    return self.relu(self.out_encoding(x_anchor)), self.relu(self.out_encoding(x_positive)), self.relu(self.out_encoding(x_negative)) # export embedding
+
+                else:
+                        
+                    return self.out_encoding(x_anchor), self.out_encoding(x_positive), self.out_encoding(x_negative)
+
             elif x_anchor is not None and x_positive is None and x_negative is None:
                 x_anchor = x_anchor.permute(0, 3, 1, 2) # change axis order
 
@@ -87,8 +93,11 @@ class CNN_Siamise_Triplet(CNN_Triplet_Model):
                     for layer in self.mlp_encoding: # go through mlp layers
                         x_anchor = layer(x_anchor)
 
+                if final_relu:
         
-                return self.relu(self.out_encoding(x_anchor)) # export embedding
+                    return self.relu(self.out_encoding(x_anchor))
+                else:
+                    return self.out_encoding(x_anchor)
         
             elif x_positive is not None and x_anchor is None and x_negative is None:
                 x_positive = x_positive.permute(0, 3, 1, 2)
@@ -104,8 +113,12 @@ class CNN_Siamise_Triplet(CNN_Triplet_Model):
 
                     for layer in self.mlp_encoding:
                         x_positive = layer(x_positive)
-        
-                return self.relu(self.out_encoding(x_positive))
+                
+
+                if final_relu:
+                    return self.relu(self.out_encoding(x_positive))
+                else:
+                    return self.out_encoding(x_positive)
         
     def __init__(self, CFG, name="CNN_Siamise_Triplet"):
         super().__init__(CFG, name=CFG.name)

@@ -304,7 +304,7 @@ class CNN_Triplet_Model(object):
 
             if self.CFG.resample: # re-rank the negative instances so each time we train on the hardest negatives
             
-                most_similar_hard_negatives = self.re_rank(train_list, batch_size)
+                most_similar_hard_negatives = self.re_rank(train_list, batch_size, CFG=self.CFG)
     
     
     def eval(self, val_list, batch_size=128, return_loss=False):
@@ -418,33 +418,55 @@ class CNN_Triplet_Model(object):
 
         return out, correct/total
     
-    def re_rank(self, train_list, batch_size):
+    def re_rank(self, train_list, batch_size, CFG):
 
-        left = list(train_list['left'])
-        right = list(train_list['right'])
+        anchor = list(train_list['left']) + list(train_list['right'])
+        nonanchor = list(train_list['right']) + list(train_list['left'])
 
-        left_embeddings = self.get_embeddings(list(train_list['left']), batch_size, mode = 'left')
-        right_embeddings = self.get_embeddings(list(train_list['right']), batch_size, mode = 'right')
 
-        left_embeddings_tensor = torch.stack(left_embeddings)
-        right_embeddings_tensor = torch.stack(right_embeddings)
+        embeddings_anchor = self.get_embeddings(anchor, batch_size, mode = 'anchor')
+        embeddings_nonanchor = self.get_embeddings(nonanchor, batch_size, mode = 'non-anchor')
 
-        distances = torch.sum((left_embeddings_tensor.unsqueeze(1) - right_embeddings_tensor.unsqueeze(0))**2, dim=2)
+
+        # anchor_embeddings_tensor = torch.cat(embeddings_anchor)
+        # nonanchor_embeddings_tensor = torch.cat(embeddings_nonanchor)
+
+        # distances = torch.sum((anchor_embeddings_tensor.unsqueeze(1) - nonanchor_embeddings_tensor.unsqueeze(0))**2, dim=2)
+
+        anchors = torch.stack(embeddings_anchor)
+        nonanchors = torch.stack(embeddings_nonanchor)
+
+        distances = list()
+
+        for i in range(0, anchors.shape[0], batch_size):
+
+            anchor_batch = anchors[i:i+batch_size, :].unsqueeze(0)
+
+            squared_diff = (anchor_batch - nonanchors.unsqueeze(1))**2
+
+            distance = squared_diff.sum(dim=-1).permute(1, 0)
+
+            distances.extend(distance)
+
+        distances = torch.stack(distances)
+
 
         most_similar_hard_negatives = {}
 
-        for i in range(len(left_embeddings)):
-            sorted_indices = torch.argsort(distances[i])
+        sorted_indices_list = torch.argsort(distances, dim=1)
+
+        for i in range(len(nonanchors)):
+            sorted_indices = sorted_indices_list[i]
 
             switch = False
             similar_hard_negatives = []
             for j in range(len(sorted_indices)):
-                right_name = right[sorted_indices[j]]
-                if switch:
-                    similar_hard_negatives.append((right_name, distances[i, sorted_indices[j]])) 
-                if right_name == right[i]:
+                nonanchor_name = nonanchor[sorted_indices[j]]
+                if switch and nonanchor_name != anchor[i]: # seimihard sampling, and also avoid sampling anchor itself as nonannchor
+                    similar_hard_negatives.append((nonanchor_name, distances[i, sorted_indices[j]])) 
+                if nonanchor_name == nonanchor[i]: # ignore all negatives that are closer to anchor than the positive
                     switch = True
-            most_similar_hard_negatives[left[i]] = similar_hard_negatives
+            most_similar_hard_negatives[anchor[i]] = similar_hard_negatives
         
         return most_similar_hard_negatives
             
@@ -464,9 +486,9 @@ class CNN_Triplet_Model(object):
                 if len(input_images) == 0:
                     continue
 
-                if mode == 'left':
+                if mode == 'anchor':
                     embedding = self.model(x_anchor = input_images)
-                elif mode == 'right':
+                elif mode == 'non-anchor':
                     embedding = self.model(x_positive = input_images)
                 
                 embeddings.extend(embedding)

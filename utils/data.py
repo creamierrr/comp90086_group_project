@@ -102,37 +102,62 @@ def DataFactory_Triplet(train_list, num_false, seed, most_similar_hard_negatives
 
     x_list = []
 
+    np.random.seed(seed)
+
     if most_similar_hard_negatives is not None:
 
+
         for i in range(len(train_list)):
+            # do left
+            ranked_negative_tuples = most_similar_hard_negatives[left[i]][:num_false - CFG.num_random_sample_false]
+            ranked_negative = [negative_tuple[0] for negative_tuple in ranked_negative_tuples]
 
-            ranked_right_tuples = most_similar_hard_negatives[left[i]][:num_false - CFG.num_random_sample_false]
-            ranked_right = [right_tuple[0] for right_tuple in ranked_right_tuples]
-
-            for j in range(len(ranked_right)):
-                x_list.append((left[i], right[i], ranked_right[j]))
+            for j in range(len(ranked_negative)):
+                x_list.append((left[i], right[i], ranked_negative[j]))
             
-            right_tmp = [right_tuple[0] for right_tuple in most_similar_hard_negatives[left[i]][num_false - CFG.num_random_sample_false:]]
+            to_be_sampled = [neg_tuple[0] for neg_tuple in most_similar_hard_negatives[left[i]][num_false - CFG.num_random_sample_false:]] # will only look at remaining images which are all worse than anchor-positive (all satisfy semihard condition)
         
-            sampled_right = np.random.choice(right_tmp, CFG.num_random_sample_false, replace = False)
+            sampled_neg = np.random.choice(to_be_sampled, CFG.num_random_sample_false, replace = False)
 
-            for j in range(len(sampled_right)):
+            for j in range(len(sampled_neg)):
 
-                x_list.append((left[i], right[i], sampled_right[j]))
+                x_list.append((left[i], right[i], sampled_neg[j]))
+
+            # do right
+            ranked_negative_tuples = most_similar_hard_negatives[right[i]][:num_false - CFG.num_random_sample_false]
+            ranked_negative = [negative_tuple[0] for negative_tuple in ranked_negative_tuples]
+
+            for j in range(len(ranked_negative)):
+                x_list.append((right[i], left[i], ranked_negative[j]))
+            
+            to_be_sampled = [neg_tuple[0] for neg_tuple in most_similar_hard_negatives[right[i]][num_false - CFG.num_random_sample_false:]] # will only look at remaining images which are all worse than anchor-positive (all satisfy semihard condition)
+        
+            sampled_neg = np.random.choice(to_be_sampled, CFG.num_random_sample_false, replace = False)
+
+            for j in range(len(sampled_neg)):
+
+                x_list.append((right[i], left[i], sampled_neg[j]))
+
 
     else:
 
-        np.random.seed(seed)
-
         for i in range(len(train_list)):
-            
-            right_tmp = [right[j] for j in range(len(right)) if j != i]
+
+            # do left
+            to_be_sampled = [left[j] for j in range(len(left)) if j != i] + [right[j] for j in range(len(right)) if j != i] # all images except the anchor and the positive
         
-            sampled_right = np.random.choice(right_tmp, num_false, replace = False)
+            sampled_neg = np.random.choice(to_be_sampled, num_false, replace = False)
 
             for j in range(num_false):
 
-                x_list.append((left[i], right[i], sampled_right[j]))
+                x_list.append((left[i], right[i], sampled_neg[j]))
+        
+            # do right
+            sampled_neg = np.random.choice(to_be_sampled, num_false, replace = False)
+
+            for j in range(num_false):
+
+                x_list.append((right[i], left[i], sampled_neg[j]))
 
     return x_list
 

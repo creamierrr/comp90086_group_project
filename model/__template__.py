@@ -458,13 +458,13 @@ class CNN_Triplet_Model(object):
         for i in range(len(nonanchors)):
             sorted_indices = sorted_indices_list[i]
 
-            switch = False
+            switch = self.CFG.semi_hard # if semihard, start with false and then becomes true after hitting semihard criteria
             similar_hard_negatives = []
             for j in range(len(sorted_indices)):
                 nonanchor_name = nonanchor[sorted_indices[j]]
                 if switch and nonanchor_name != anchor[i]: # seimihard sampling, and also avoid sampling anchor itself as nonannchor
                     similar_hard_negatives.append((nonanchor_name, distances[i, sorted_indices[j]])) 
-                if nonanchor_name == nonanchor[i]: # ignore all negatives that are closer to anchor than the positive
+                if not switch and nonanchor_name == nonanchor[i]: # ignore all negatives that are closer to anchor than the positive
                     switch = True
             most_similar_hard_negatives[anchor[i]] = similar_hard_negatives
         

@@ -458,7 +458,7 @@ class CNN_Triplet_Model(object):
         for i in range(len(nonanchors)):
             sorted_indices = sorted_indices_list[i]
 
-            switch = self.CFG.semi_hard # if semihard, start with false and then becomes true after hitting semihard criteria
+            switch = not self.CFG.semi_hard # if semihard, start with false and then becomes true after hitting semihard criteria
             similar_hard_negatives = []
             for j in range(len(sorted_indices)):
                 nonanchor_name = nonanchor[sorted_indices[j]]

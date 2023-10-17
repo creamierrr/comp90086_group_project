@@ -201,7 +201,6 @@ def DataLoader_Triplet(x_list, batch_number, batch_size, CFG):
 
 
 def turn_val_into_future(val_list, seed):
-
     """ Helper that randomly samples negatives to make the train val test dataframe look like the future dataframe """
     
     left = list(val_list['left'])

@@ -18,9 +18,10 @@ class Triangular_Triplet_Loss(nn.Module):
 
 
 class Double_Triplet_Loss(nn.Module):
-    def __init__(self, margin=1.0):
+    def __init__(self, margin_a=1.0, margin_p = 0.5):
         super().__init__()
-        self.margin = margin
+        self.margin_a = margin_a
+        self.margin_p = margin_p
         
     def forward(self, anchor, positive, negative):
         
@@ -30,5 +31,5 @@ class Double_Triplet_Loss(nn.Module):
 
         pos_neg_dist = torch.sum((positive - negative) **2, dim = 1)
         
-        loss = torch.relu(anc_pos_dist - anc_neg_dist+self.margin) + torch.relu(anc_pos_dist - pos_neg_dist+self.margin)
+        loss = torch.relu(anc_pos_dist - anc_neg_dist+self.margin_a) + torch.relu(anc_pos_dist - pos_neg_dist+self.margin_p)
         return loss.mean()

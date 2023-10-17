@@ -104,7 +104,7 @@ def DataFactory_Triplet(train_list, num_false, seed, most_similar_hard_negatives
 
     np.random.seed(seed)
 
-    if most_similar_hard_negatives is not None:
+    if most_similar_hard_negatives is not None: # first round or not using semihard
 
 
         for i in range(len(train_list)):
@@ -162,6 +162,7 @@ def DataFactory_Triplet(train_list, num_false, seed, most_similar_hard_negatives
     return x_list
 
 def DataLoader_Categorisation(x_list, y_list, batch_number, batch_size, CFG):
+    """ Load in categorisation data """
     
     x_left, x_right, y = [], [], []
 
@@ -181,6 +182,7 @@ def DataLoader_Categorisation(x_list, y_list, batch_number, batch_size, CFG):
 
 
 def DataLoader_Triplet(x_list, batch_number, batch_size, CFG):
+    """ Load in Triplets """
     
     x_anchor, x_positive, x_negative = [], [], []
 
@@ -199,6 +201,8 @@ def DataLoader_Triplet(x_list, batch_number, batch_size, CFG):
 
 
 def turn_val_into_future(val_list, seed):
+
+    """ Helper that randomly samples negatives to make the train val test dataframe look like the future dataframe """
     
     left = list(val_list['left'])
     right = list(val_list['right'])

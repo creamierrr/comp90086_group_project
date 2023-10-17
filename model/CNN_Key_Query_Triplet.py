@@ -1,7 +1,7 @@
 from model.__template__ import *
 from model.Modules import *
 
-class CNN_Key_Query_Triplet(CNN_Triplet_Model):
+class CNN_Key_Query_Triplet(CNN_Triplet_Model): # ALL COMMENTS SAME AS CNN_SIAMESE_TRIPLET UNLESS ALTERNATIVELY COMMENTED
     class Model(nn.Module):
                 
         def __init__(self, CFG):
@@ -12,6 +12,7 @@ class CNN_Key_Query_Triplet(CNN_Triplet_Model):
 
             torch.manual_seed(self.CFG.random_state)
 
+            # all modules are separately defined for query and key
             self.encoder_query = torch.hub.load('pytorch/vision:v0.10.0', self.CFG.encoder, pretrained=self.CFG.pretrained) if type(self.CFG.encoder) == str else self.CFG.encoder
             self.encoder_key = torch.hub.load('pytorch/vision:v0.10.0', self.CFG.encoder, pretrained=self.CFG.pretrained) if type(self.CFG.encoder) == str else self.CFG.encoder
 
@@ -88,7 +89,7 @@ class CNN_Key_Query_Triplet(CNN_Triplet_Model):
                 else:
                     return self.out_query(x_anchor), self.out_key(x_positive), self.out_key(x_negative)
             
-        
+            # eval mode: anchor
             elif x_anchor is not None and x_positive is None and x_negative is None:
                 x_anchor = x_anchor.permute(0, 3, 1, 2) # change axis order
 
@@ -109,6 +110,7 @@ class CNN_Key_Query_Triplet(CNN_Triplet_Model):
                 else:
                     return self.out_query(x_anchor)
         
+            # eval mode: positive
             elif x_positive is not None and x_anchor is None and x_negative is None:
                 x_positive = x_positive.permute(0, 3, 1, 2)
 

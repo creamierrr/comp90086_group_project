@@ -1,7 +1,7 @@
 from model.__template__ import *
 from model.Modules import *
 
-class CNN_Siamise_Categorisation(CNN_Categorisation_Model):
+class CNN_Siamise_Categorisation(CNN_Categorisation_Model): # ALL COMMENTS SAME AS CNN_SIAMESE_TRIPLET UNLESS ALTERNATIVELY COMMENTED
     class Model(nn.Module):
                 
         def __init__(self, CFG):
@@ -71,7 +71,8 @@ class CNN_Siamise_Categorisation(CNN_Categorisation_Model):
                 for layer in self.mlp:
                     x_left = layer(x_left)
                     x_right = layer(x_right)
-                
+
+            # concat and feed to final classification layer 
             x_combined_embed = torch.cat((x_left, x_right), 1)
 
             return self.softmax(self.out(x_combined_embed))

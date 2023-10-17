@@ -12,7 +12,7 @@ class CNN_Categorisation_Model(object):
         self.name  = name
         self.model = self.Model(self.CFG) # initialise model
 
-        torch.manual_seed(self.CFG.random_state)
+        torch.manual_seed(self.CFG.random_state) # set random seed
         
         self.optimizer = AdamW(self.model.parameters(), lr=self.CFG.lr)
         self.criterion = self.CFG.loss
@@ -25,11 +25,11 @@ class CNN_Categorisation_Model(object):
     def __str__(self):
         return self.name
     
-    def save(self, mark=''): # need to be changed
+    def save(self, mark=''): # save model
         mark = ' ' + mark if mark else mark
         torch.save(self.model.state_dict(), os.path.join(self.CFG.rootpath, f'state/{self}{mark}.pt'))
     
-    def load(self, mark=''):
+    def load(self, mark=''): # load model
         mark = ' ' + mark if mark else mark
         self.model.load_state_dict(torch.load(os.path.join(self.CFG.rootpath, f'state/{self}{mark}.pt'), map_location=self.device))
     
@@ -38,31 +38,30 @@ class CNN_Categorisation_Model(object):
         scheduler = lr_scheduler.ReduceLROnPlateau(self.optimizer, 'min', factor=0.5, patience=patience//2) if scheduler else None
 
         np.random.seed(self.CFG.random_state)
-        seeds = [np.random.randint(1, 1000) for _ in range(epochs)]
+        seeds = [np.random.randint(1, 1000) for _ in range(epochs)] # get a seed for every round
 
-        # min_loss = math.inf
         max_accu = -math.inf
         for epoch in range(epochs):
 
             if not patience:
                 break
             
-            x_list, y_list = self.CFG.DataFactory_Categorisation(train_list, self.CFG.num_false, self.CFG.random_state, target = self.CFG.target)
+            x_list, y_list = self.CFG.DataFactory_Categorisation(train_list, self.CFG.num_false, self.CFG.random_state, target = self.CFG.target) # create the instance for this round
 
             epoch_loss = 0
             epoch_pred, epoch_true = [], []
             n_batch = len(x_list)//batch_size + 1
 
-            np.random.seed(seeds[epoch])
+            np.random.seed(seeds[epoch]) # shuffle the data (make sure that the two lists are shuffled in the same way)
             np.random.shuffle(x_list)
             np.random.seed(seeds[epoch])
             np.random.shuffle(y_list)
 
             for mini_batch_number in tqdm(range(n_batch)):
                 
-                x_left, x_right, y = self.CFG.DataLoader_Categorisation(x_list, y_list, mini_batch_number, batch_size, self.CFG)
+                x_left, x_right, y = self.CFG.DataLoader_Categorisation(x_list, y_list, mini_batch_number, batch_size, self.CFG) # load each mini batch
 
-                if len(x_left) == 0:
+                if len(x_left) == 0: # last batch potential bug
                     continue
 
                 x_left, x_right, y = x_left.to(self.device), x_right.to(self.device), y.to(self.device)
@@ -90,17 +89,17 @@ class CNN_Categorisation_Model(object):
             epoch_accuracy = accuracy_score(epoch_pred, epoch_true)
             print(f"Epoch: {epoch + 1:>3} - Loss: {epoch_loss:.3f}, Accuracy: {epoch_accuracy:.3f}")
 
-
+            # do validation
             if val_list is not None:
                 valid_loss, valid_accu = self.eval(val_list, batch_size=batch_size, return_loss=True)
                 self.model.train()
-                if valid_accu >= max_accu:
+                if valid_accu >= max_accu: # if validation improve, then save the model
                     max_accu = valid_accu
                     self.save(mark)
                 else:
-                    patience -= 1
+                    patience -= 1 # else contribute 1 to early stopping
                 if scheduler:
-                    scheduler.step(valid_loss)
+                    scheduler.step(valid_loss) # adjust the scheduler
     
     
     def eval(self, val_list, batch_size=128, return_loss=False):
@@ -110,7 +109,7 @@ class CNN_Categorisation_Model(object):
         with torch.no_grad():
         
 
-            x_list, y_list = self.CFG.DataFactory_Categorisation(val_list, self.CFG.num_false, self.CFG.random_state, target = self.CFG.target)
+            x_list, y_list = self.CFG.DataFactory_Categorisation(val_list, self.CFG.num_false, self.CFG.random_state, target = self.CFG.target) # create the instance
 
             valid_loss = 0
             valid_pred, valid_true = [], []
@@ -118,7 +117,7 @@ class CNN_Categorisation_Model(object):
 
             for mini_batch_number in range(n_batch):
                 
-                x_left, x_right, y = self.CFG.DataLoader_Categorisation(x_list, y_list, mini_batch_number, batch_size, self.CFG)
+                x_left, x_right, y = self.CFG.DataLoader_Categorisation(x_list, y_list, mini_batch_number, batch_size, self.CFG) # load each mini batch
 
                 if len(x_left) == 0:
                     continue
@@ -139,7 +138,7 @@ class CNN_Categorisation_Model(object):
 
             val_future_list = turn_val_into_future(val_list, self.CFG.random_state)
             
-            out, real_val_accu = self.real_eval(val_future_list, self.CFG.real_eval_batch_size)
+            out, real_val_accu = self.real_eval(val_future_list, self.CFG.real_eval_batch_size) # get top2 evaluation (i.e. real evaluation)
 
             valid_loss /= n_batch
             valid_accuracy = accuracy_score(valid_pred, valid_true)
@@ -182,7 +181,7 @@ class CNN_Categorisation_Model(object):
                     left_images = []
                     right_images = []
 
-            if (id+1) % row_batch_size != 0: # last ones
+            if (id+1) % row_batch_size != 0: # in case residual batch
 
                 left_images = torch.tensor(np.array(left_images)).to(self.device)
                 right_images = torch.tensor(np.array(right_images)).to(self.device)
@@ -197,17 +196,17 @@ class CNN_Categorisation_Model(object):
 
         print('Nominal Correct:', correct/total)
 
-        out = future_list[['left']]
+        out = future_list[['left']] # create final dataframe
 
         results_df = pd.DataFrame(results, columns = [f'c{i}' for i in range(20)])
-        results_df = results_df.apply(softmax, axis = 1)
+        results_df = results_df.apply(softmax, axis = 1) # apply softmax to get pseudo probs
 
         out = pd.concat([out, results_df], axis = 1)
         
         return out, correct/total
 
 
-class CNN_Triplet_Model(object):
+class CNN_Triplet_Model(object): # COMMENTS SAME AS CLASSIFICATION TEMPLATE, EXCEPT WHERE THERE ARE ADDITIONAL COMMENTS
     class Model():
         def __init__(self, CFG):
             pass
@@ -216,7 +215,7 @@ class CNN_Triplet_Model(object):
         super().__init__()
         self.CFG   = CFG
         self.name  = name
-        self.model = self.Model(self.CFG)
+        self.model = self.Model(self.CFG) 
 
         assert self.CFG.num_false >= self.CFG.num_random_sample_false, 'num_false must be greater than or equal to num_random_sample'
 
@@ -233,7 +232,7 @@ class CNN_Triplet_Model(object):
     def __str__(self):
         return self.name
     
-    def save(self, mark=''): # need to be changed
+    def save(self, mark=''): 
         mark = ' ' + mark if mark else mark
         torch.save(self.model.state_dict(), os.path.join(self.CFG.rootpath, f'state/{self}{mark}.pt'))
     
@@ -248,7 +247,6 @@ class CNN_Triplet_Model(object):
         np.random.seed(self.CFG.random_state)
         seeds = [np.random.randint(1, 1000) for _ in range(epochs)]
 
-        # min_loss = math.inf
         max_accu = -math.inf
         for epoch in range(epochs):
 
@@ -383,7 +381,7 @@ class CNN_Triplet_Model(object):
                     left_image = []
                     right_images = []
                 
-            if (id+1) % row_batch_size != 0: # last ones
+            if (id+1) % row_batch_size != 0: 
             
                 left_image = torch.tensor(np.array(left_image)).to(self.device)
                 right_images = torch.tensor(np.array(right_images)).to(self.device)
@@ -395,7 +393,7 @@ class CNN_Triplet_Model(object):
                 right_embeddings = right_embeddings.reshape(((id+1)%row_batch_size), int(len_right/((id+1)%row_batch_size)), self.CFG.embed_dim)
                 scores = []
                 for i in range(len(left_embeddings)):
-                    scores.extend([(1/(1e-5 + torch.sqrt(torch.sum(torch.pow(left_embeddings[i] - right_embed, 2))))).cpu().numpy() for right_embed in right_embeddings[i]])
+                    scores.extend([(1/(1e-5 + torch.sqrt(torch.sum(torch.pow(left_embeddings[i] - right_embed, 2))))).cpu().numpy() for right_embed in right_embeddings[i]]) # take the inverse euclidean distance
 
                 scores = np.array(scores)
                 scores = scores.reshape(((id+1)%row_batch_size), int(len_right/((id+1)%row_batch_size)))
@@ -424,18 +422,13 @@ class CNN_Triplet_Model(object):
         nonanchor = list(train_list['right']) + list(train_list['left'])
 
 
-        embeddings_anchor = self.get_embeddings(anchor, batch_size, mode = 'anchor')
+        embeddings_anchor = self.get_embeddings(anchor, batch_size, mode = 'anchor') # get the embeddings
         embeddings_nonanchor = self.get_embeddings(nonanchor, batch_size, mode = 'non-anchor')
-
-
-        # anchor_embeddings_tensor = torch.cat(embeddings_anchor)
-        # nonanchor_embeddings_tensor = torch.cat(embeddings_nonanchor)
-
-        # distances = torch.sum((anchor_embeddings_tensor.unsqueeze(1) - nonanchor_embeddings_tensor.unsqueeze(0))**2, dim=2)
 
         anchors = torch.stack(embeddings_anchor)
         nonanchors = torch.stack(embeddings_nonanchor)
 
+        # calculate the inter-pair euclidean distance
         distances = list()
 
         for i in range(0, anchors.shape[0], batch_size):
@@ -450,7 +443,7 @@ class CNN_Triplet_Model(object):
 
         distances = torch.stack(distances)
 
-
+        # get the hard negatives
         most_similar_hard_negatives = {}
 
         sorted_indices_list = torch.argsort(distances, dim=1)
@@ -486,7 +479,7 @@ class CNN_Triplet_Model(object):
                 if len(input_images) == 0:
                     continue
 
-                if mode == 'anchor':
+                if mode == 'anchor': # put the model through the model to get embeddings (different modes in case of bi-encoder)
                     embedding = self.model(x_anchor = input_images)
                 elif mode == 'non-anchor':
                     embedding = self.model(x_positive = input_images)

@@ -403,3 +403,4 @@ state/CNN_Categorisation.pt
 *.pt
 state/CNN_Triplet.pt
 state/CNN_Categorisation.pt
+presentables/sample input/5.png

@@ -12,19 +12,22 @@ class CNN_Siamise_Triplet(CNN_Triplet_Model):
 
             torch.manual_seed(self.CFG.random_state)
 
-            self.encoder = torch.hub.load('pytorch/vision:v0.10.0', self.CFG.encoder, pretrained=self.CFG.pretrained) if type(self.CFG.encoder) == str else self.CFG.encoder
+            self.encoder = torch.hub.load('pytorch/vision:v0.10.0', self.CFG.encoder, pretrained=self.CFG.pretrained) if type(self.CFG.encoder) == str else self.CFG.encoder # load the model
 
             if self.CFG.crop_pretrained_linear:
-                self.encoder = nn.Sequential(*list(self.encoder.children())[:-1])
+                self.encoder = nn.Sequential(*list(self.encoder.children())[:-1]) # crop the last layer if set to true
 
+            # get example output size to know size of flatten layer
             sample_input = torch.randn([1, self.CFG.input_shape[1], self.CFG.input_shape[2], self.CFG.input_shape[3]])  
             sample_output = self.encoder(sample_input)
 
             flatten_shape = np.prod(sample_output.shape[1:])
 
+            # consider freezing parameters
             for param in self.encoder.parameters():
                 param.requires_grad = not self.CFG.freeze_encoder
 
+            # get MLP layers for after CNN
             if self.CFG.num_mlp_layers:
                 
                 self.transition_encoder = nn.Linear(flatten_shape, self.CFG.hidden_dim)
@@ -78,6 +81,7 @@ class CNN_Siamise_Triplet(CNN_Triplet_Model):
                         
                     return self.out_encoding(x_anchor), self.out_encoding(x_positive), self.out_encoding(x_negative)
 
+            # eval mode: anchor
             elif x_anchor is not None and x_positive is None and x_negative is None:
                 x_anchor = x_anchor.permute(0, 3, 1, 2) # change axis order
 
@@ -98,7 +102,8 @@ class CNN_Siamise_Triplet(CNN_Triplet_Model):
                     return self.relu(self.out_encoding(x_anchor))
                 else:
                     return self.out_encoding(x_anchor)
-        
+
+            # eval mode: positive
             elif x_positive is not None and x_anchor is None and x_negative is None:
                 x_positive = x_positive.permute(0, 3, 1, 2)
 

@@ -1,0 +1,13 @@
+numpy
+pandas
+scipy
+scipy
+einops
+scikit-learn
+scikit-image
+tensorflow
+torch
+torchvision
+tqdm
+opencv-python
+matplotlib

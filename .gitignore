@@ -9,6 +9,8 @@
 *.user
 *.userosscache
 *.sln.docstates
+*.csv
+*.jpg
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -397,3 +399,8 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 .DS_Store
+state/CNN_Categorisation.pt
+*.pt
+state/CNN_Triplet.pt
+state/CNN_Categorisation.pt
+presentables/sample input/5.png

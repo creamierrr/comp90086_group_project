@@ -18,11 +18,11 @@
 
 > Before you begin, ensure you have met the following requirements:
 
-* Python 3.6 or higher installed on your system.
+* **Python 3.6** or higher installed on your system.
 
-* Jupyter Notebook installed on your system.
+* **Jupyter Notebook** installed on your system.
 
-* PyTorch installed. You can install it using pip:
+* **PyTorch** installed. You can install it using pip:
 ```bash
 pip install torch torchvision
 ```
@@ -39,35 +39,44 @@ pip install -r requirements.txt
 
 * Prepare your dataset by following the instructions in the dataset directory (`COMP90086_2023_TLLdataset 2/`). Make sure that the dataset is in the same directory as `main.ipynb`.
 
-The directory structure might look something like this:
+    * The directory structure might look something like this:
 
-```css
-project_directory/
-│
-├── main.ipynb
-│
-├── requirements.txt
-│
-├── COMP90086_2023_TLLdataset 2/
-│   │
-│   ├── test/
-│   │   │
-│   │   ├── ...
-│   │
-│   ├── train/
-│   │   │
-│   │   ├── ...
-│   │
-│   ├── train.csv
-│   │   
-│   │   
-│   └── ...
-```
+        ```css
+        project_directory/
+        │
+        ├── main.ipynb
+        │
+        ├── requirements.txt
+        │
+        ├── COMP90086_2023_TLLdataset 2/
+        │   │
+        │   ├── test/
+        │   │   │
+        │   │   ├── ...
+        │   │
+        │   ├── train/
+        │   │   │
+        │   │   ├── ...
+        │   │
+        │   ├── train.csv
+        │   │   
+        │   │   
+        │   └── ...
+        ```
 
 * Open `main.ipynb` and execute the cells sequentially to run the project. 
 
-* Upon successful training process, the trained models will be saved in the `state/` directory. Test predictions will be output to `test_predictions.csv` in the project directory. You can load the trained models and use them for inference.
+    * The first `Load the libraries and network architecture` section imports the necessary packages and defines some helper functions.
+    * The second `Load the data and pre-process the data` section loads the images and pre-process the images.
+    * The following sections define the models and train the models.
+      * Our **final model** is `Experiment 2: Semi-hard negative mining` using `DenseNet201` as the backbone, which can be located under the `Siamese Constrative` section.
+      * Other models denote different experiments we have done. 
+      * You can train the model by executing the cells under the corresponding section.
+
+* Upon successful training process, the trained models will be saved in the `state/` directory. Test predictions will be output to a corresponding csv file in the project directory. You can load the trained models and use them for inference.
 ```python
 # load the trained model
 cnn_siamise_triplet.load()
 ```
+
+* The **final test prediction** is saved in `final_prediction.csv` in the project directory. We submitted it to Kaggle to get the final score.

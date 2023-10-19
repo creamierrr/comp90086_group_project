@@ -1,8 +1,21 @@
 from environment import *
 
 # prepare image for the model
-def prepare_image(filepath, resize_shape = 0, normalize = 0):
+def prepare_image(filepath, resize_shape = 0, normalize = 0, preprocess = 0):
     img = cv2.imread(filepath)
+    
+    if preprocess:
+        # Define the kernel size (larger kernel size results in stronger blur) and apply Gaussian blur
+        kernel_size = (5, 5)
+        img = cv2.GaussianBlur(img, kernel_size, 0)
+        # Adjust the brightness and contrast  
+        # g(i,j)=α⋅f(i,j)+β 
+        # control Contrast by 1.5 
+        alpha = 1.5  
+        # control brightness by 50 
+        beta = 50  
+        img = cv2.convertScaleAbs(img, alpha=alpha, beta=beta) 
+
     if resize_shape:
         
         # padding if the resize shape is greater than the original image shape
@@ -38,7 +51,6 @@ def prepare_image(filepath, resize_shape = 0, normalize = 0):
         img = center_cropped_img
 
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-
     img = img.astype("float32")
 
     if normalize:

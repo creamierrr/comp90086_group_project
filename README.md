@@ -2,8 +2,7 @@
 
 #### Similarity Detection Models Through Human Lens
 
-> Computer Vision's progress has produced advanced Deep Architectures whose performance on rigid tasks like classification beats humans, but human vision systems and the way humans process visual signals are much richer than the traditional objectives Computer Vision models train to achieve. In this work, the way humans detect similarity is modelled using a Siamese Network with Triplet Learning, on the Totally-Looks-Alike data-set which is curated with image pairs of unrelated objects which absurdly look similar. This work proposes a model with 61.7% top2-accuracy over 20 candidate images, building towards computer vision machine learning with greater human qualities with a variety of applications in robotics and digital content monitoring.
-
+> Computer Vision's progress has produced advanced Deep Architectures which beats humans on rigid tasks like classification, but human vision systems and the way humans process visual signals are much richer than the traditional objectives Computer Vision models train to achieve. In this work, the way humans detect similarity is modelled using a Siamese Network with Triplet Learning to solve the Totally-Looks-Alike similarity classification problem, proposing a model with 61.7\% top2-accuracy when classifying similarity over 20 candidate images and building towards more human-like CV machine learning applicable to robotics and digital content monitoring.
 #### Group Members
 
 - **Name:** Lang (Ron) Chen **Student ID:** 1181506 **Email:** Lachen1@student.unimelb.edu.au
